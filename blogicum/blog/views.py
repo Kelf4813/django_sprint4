@@ -70,8 +70,8 @@ def profile(request, username):
     now = timezone.now()
     user = request.user
     profile = get_object_or_404(User, username=username)
-    posts = Post.objects.filter(author=profile.id).annotate(
-        comment_count=Count('comment'))
+    posts = Post.objects.filter(author=profile.id).order_by(
+        'pub_date').annotate(comment_count=Count('comment'))
     if username != user.username:
         posts = posts.filter(pub_date__lte=now, is_published=True)
     paginator = Paginator(posts, 10)
