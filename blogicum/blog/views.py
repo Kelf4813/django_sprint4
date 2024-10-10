@@ -19,7 +19,8 @@ def filter_posts(posts):
 
 def index(request):
     now = timezone.now()
-    posts = Post.objects.filter(pub_date__lte=now, is_published=True).annotate(
+    posts = Post.objects.filter(pub_date__lte=now, is_published=True,
+                                category__is_published=True).annotate(
         comment_count=Count('comment'))
     paginator = Paginator(posts, 10)
     page_number = request.GET.get('page')
@@ -51,9 +52,12 @@ def post_detail(request, post_id):
 
 
 def category_posts(request, category_slug):
+    now = timezone.now()
     category = get_object_or_404(Category, slug=category_slug,
                                  is_published=True)
-    post_list = filter_posts(Post.objects).filter(category=category)
+    post_list = filter_posts(Post.objects).filter(category=category,
+                                                  is_published=True,
+                                                  pub_date__lte=now)
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
