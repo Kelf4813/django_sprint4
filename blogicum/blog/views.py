@@ -57,7 +57,8 @@ def category_posts(request, category_slug):
                                  is_published=True)
     post_list = filter_posts(Post.objects).filter(category=category,
                                                   is_published=True,
-                                                  pub_date__lte=now)
+                                                  pub_date__lte=now).annotate(
+        comment_count=Count('comment'))
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -111,20 +112,23 @@ def create_post(request, post_id=None):
 
 @login_required
 def add_comment(request, post_id, comment_id=None):
+    user = request.user
     if comment_id is not None:
-        instance = get_object_or_404(Comment, id=comment_id)
+        instance = get_object_or_404(Comment, id=comment_id, author=user.id)
     else:
         instance = None
     form = AddComment(request.POST or None, instance=instance)
-    user = request.user
     if form.is_valid():
         instance = form.save(commit=False)
         instance.author = request.user
+        instance.post_id = post_id
         instance.save()
         return redirect('blog:post_detail', post_id=post_id)
-    return render(request, 'blog/comment.html', context={'form': form})
+    return render(request, 'blog/comment.html', context={'form': form,
+                                                         'comment': instance})
 
 
+@login_required
 def delete_post(request, post_id):
     post = get_object_or_404(filter_posts(Post.objects), id=post_id)
     instance = get_object_or_404(Post, pk=post_id)
@@ -134,16 +138,14 @@ def delete_post(request, post_id):
         user = request.user
         instance.delete()
         return redirect('blog:profile', username=user.username)
-    return render(request, 'blog/detail.html', context)
+    return render(request, 'blog/create.html', context)
 
 
+@login_required
 def delete_comment(request, post_id, comment_id):
-    post = get_object_or_404(filter_posts(Post.objects), id=post_id)
-    instance = get_object_or_404(Comment, pk=comment_id)
-    form = AddComment(instance=instance)
-    context = {'form': form, 'post': post}
-    print(request.method)
+    user = request.user
+    instance = get_object_or_404(Comment, pk=comment_id, author=user.id)
     if request.method == 'POST':
         instance.delete()
         return redirect('blog:post_detail', post_id=post_id)
-    return render(request, 'blog/detail.html', context)
+    return render(request, 'blog/comment.html', context={'comment': instance})
