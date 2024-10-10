@@ -111,23 +111,25 @@ def create_post(request, post_id=None):
 
 @login_required
 def add_comment(request, post_id, comment_id=None):
-    form = AddComment(
-        request.POST or None,
-        files=request.FILES or None
-    )
+    if comment_id is not None:
+        instance = get_object_or_404(Comment, id=comment_id)
+    else:
+        instance = None
+    form = AddComment(request.POST or None, instance=instance)
+    user = request.user
     if form.is_valid():
         instance = form.save(commit=False)
-        instance.post_id = post_id
         instance.author = request.user
         instance.save()
         return redirect('blog:post_detail', post_id=post_id)
-    return render(request, 'blog/detail.html', context={'form': form})
+    return render(request, 'blog/comment.html', context={'form': form})
 
 
 def delete_post(request, post_id):
+    post = get_object_or_404(filter_posts(Post.objects), id=post_id)
     instance = get_object_or_404(Post, pk=post_id)
     form = NewPost(instance=instance)
-    context = {'form': form}
+    context = {'form': form, 'post': post}
     if request.method == 'POST':
         user = request.user
         instance.delete()
@@ -136,9 +138,10 @@ def delete_post(request, post_id):
 
 
 def delete_comment(request, post_id, comment_id):
+    post = get_object_or_404(filter_posts(Post.objects), id=post_id)
     instance = get_object_or_404(Comment, pk=comment_id)
     form = AddComment(instance=instance)
-    context = {'form': form}
+    context = {'form': form, 'post': post}
     print(request.method)
     if request.method == 'POST':
         instance.delete()
