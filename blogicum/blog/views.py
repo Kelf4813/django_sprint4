@@ -19,7 +19,7 @@ def filter_posts(posts):
 
 def index(request):
     now = timezone.now()
-    posts = Post.objects.filter(pub_date__lte=now).annotate(
+    posts = Post.objects.filter(pub_date__lte=now, is_published=True).annotate(
         comment_count=Count('comment'))
     paginator = Paginator(posts, 10)
     page_number = request.GET.get('page')
@@ -68,7 +68,7 @@ def profile(request, username):
     posts = Post.objects.filter(author=profile.id).annotate(
         comment_count=Count('comment'))
     if username != user.username:
-        posts = posts.filter(pub_date__lte=now)
+        posts = posts.filter(pub_date__lte=now, is_published=True)
     paginator = Paginator(posts, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -90,32 +90,18 @@ def edit_profile(request):
 
 
 @login_required
-def create_post(request):
+def create_post(request, post_id=None):
+    if post_id is not None:
+        instance = get_object_or_404(Post, id=post_id)
+    else:
+        instance = None
+    form = NewPost(request.POST or None, instance=instance)
     user = request.user
-    form = NewPost(
-        request.POST or None,
-        files=request.FILES or None
-    )
     if form.is_valid():
         instance = form.save(commit=False)
         instance.author = request.user
         instance.save()
         return redirect('blog:profile', username=user.username)
-
-    return render(request, 'blog/create.html', context={'form': form})
-
-
-@login_required
-def edit_post(request, post_id):
-    user = request.user
-    post = get_object_or_404(filter_posts(Post.objects), id=post_id).filter(
-        author=user.id)
-    form = NewPost(instance=post)
-    if request.method == 'POST':
-        form = NewPost(request.POST, instance=user)
-        if form.is_valid():
-            form.save()
-            return redirect('blog:post_detail', post_id=post_id)
     return render(request, 'blog/create.html', context={'form': form})
 
 
@@ -134,7 +120,7 @@ def add_comment(request, post_id, comment_id=None):
     return render(request, 'blog/detail.html', context={'form': form})
 
 
-def delete_post(request, post_id, comment_id):
+def delete_post(request, post_id):
     instance = get_object_or_404(Post, pk=post_id)
     form = NewPost(instance=instance)
     context = {'form': form}
@@ -149,6 +135,7 @@ def delete_comment(request, post_id, comment_id):
     instance = get_object_or_404(Comment, pk=comment_id)
     form = AddComment(instance=instance)
     context = {'form': form}
+    print(request.method)
     if request.method == 'POST':
         instance.delete()
         return redirect('blog:post_detail', post_id=post_id)
