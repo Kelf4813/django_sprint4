@@ -15,6 +15,8 @@ DEBUG = True
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
+    'www.kelffff.pythonanywhere.com',
+    'kelffff.pythonanywhere.com/',
 ]
 
 # Application definition
@@ -52,6 +54,8 @@ MEDIA_ROOT = BASE_DIR / 'media'
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 
 EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'
+
+LOGIN_URL = '/auth/login/'
 
 LOGIN_REDIRECT_URL = 'blog:index'
 
