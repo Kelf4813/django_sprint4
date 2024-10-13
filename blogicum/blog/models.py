@@ -75,6 +75,7 @@ class Post(BaseModel):
 class Comment(BaseModel):
     text = models.TextField(verbose_name='Комментарий')
     post = models.ForeignKey(Post, on_delete=models.CASCADE,
+                             related_name='comment',
                              verbose_name='Пост')
     author = models.ForeignKey(User, on_delete=models.CASCADE,
                                verbose_name='Автор комментария')
