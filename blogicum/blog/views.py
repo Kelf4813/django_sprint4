@@ -31,7 +31,9 @@ def index(request):
 def post_detail(request, post_id):
     post = get_object_or_404(Post.objects.filter((Q(is_published=True) & Q(
         category__is_published=True)) | Q(author=request.user.id)), id=post_id)
-    comments = post.comment.all()
+    # comments = post.comment.all()
+    comments = Comment.objects.all().filter(post_id=post_id).order_by(
+        'created_at')
     form = AddComment(
         request.POST or None,
         files=request.FILES or None
@@ -52,7 +54,7 @@ def category_posts(request, category_slug):
                                  is_published=True)
     post_list = filter_posts(Post.objects).filter(
         category=category, is_published=True,
-        ub_date__lte=timezone.now()).annotate(
+        pub_date__lte=timezone.now()).annotate(
         comment_count=Count('comment')).order_by('-pub_date')
     paginator = Paginator(post_list, POSTS_LIMIT)
     page_number = request.GET.get('page')
