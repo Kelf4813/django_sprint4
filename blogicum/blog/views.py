@@ -50,9 +50,9 @@ def post_detail(request, post_id):
 def category_posts(request, category_slug):
     category = get_object_or_404(Category, slug=category_slug,
                                  is_published=True)
-    post_list = filter_posts(Post.objects).filter(category=category,
-                                                  is_published=True,
-                                                  pub_date__lte=timezone.now()).annotate(
+    post_list = filter_posts(Post.objects).filter(
+        category=category, is_published=True,
+        ub_date__lte=timezone.now()).annotate(
         comment_count=Count('comment')).order_by('-pub_date')
     paginator = Paginator(post_list, POSTS_LIMIT)
     page_number = request.GET.get('page')
