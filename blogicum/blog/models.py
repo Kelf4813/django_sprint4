@@ -1,5 +1,5 @@
-from django.db import models
 from django.contrib.auth import get_user_model
+from django.db import models
 
 from .constants import TITLE_MAX_LENGTH
 
@@ -56,11 +56,13 @@ class Post(BaseModel):
                                               'будущем — можно делать '
                                               'отложенные публикации.')
     author = models.ForeignKey(User, on_delete=models.CASCADE,
+                               related_name='author',
                                verbose_name='Автор публикации')
     location = models.ForeignKey(Location, on_delete=models.SET_NULL,
                                  blank=True, null=True,
                                  verbose_name='Местоположение')
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL,
+    category = models.ForeignKey(Category, related_name='category',
+                                 on_delete=models.SET_NULL,
                                  null=True, verbose_name='Категория')
     image = models.ImageField('Фото', upload_to='posts_img', blank=True)
 
