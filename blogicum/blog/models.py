@@ -56,12 +56,12 @@ class Post(BaseModel):
                                               'будущем — можно делать '
                                               'отложенные публикации.')
     author = models.ForeignKey(User, on_delete=models.CASCADE,
-                               related_name='author',
+                               related_name='posts',
                                verbose_name='Автор публикации')
     location = models.ForeignKey(Location, on_delete=models.SET_NULL,
                                  blank=True, null=True,
                                  verbose_name='Местоположение')
-    category = models.ForeignKey(Category, related_name='category',
+    category = models.ForeignKey(Category, related_name='posts_in_category',
                                  on_delete=models.SET_NULL,
                                  null=True, verbose_name='Категория')
     image = models.ImageField('Фото', upload_to='posts_img', blank=True)
@@ -69,6 +69,7 @@ class Post(BaseModel):
     class Meta:
         verbose_name = 'публикация'
         verbose_name_plural = 'Публикации'
+        ordering = ['created_at']
 
     def __str__(self):
         return self.title
