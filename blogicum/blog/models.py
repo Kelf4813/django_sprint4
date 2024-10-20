@@ -61,7 +61,7 @@ class Post(BaseModel):
     location = models.ForeignKey(Location, on_delete=models.SET_NULL,
                                  blank=True, null=True,
                                  verbose_name='Местоположение')
-    category = models.ForeignKey(Category, related_name='posts_in_category',
+    category = models.ForeignKey(Category, related_name='posts',
                                  on_delete=models.SET_NULL,
                                  null=True, verbose_name='Категория')
     image = models.ImageField('Фото', upload_to='posts_img', blank=True)
