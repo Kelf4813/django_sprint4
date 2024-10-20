@@ -78,12 +78,13 @@ def edit_profile(request):
 @login_required
 def create_post(request):
     form = NewPost(request.POST or None, files=request.FILES or None)
+    user = request.user
     if form.is_valid():
         instance = form.save(commit=False)
-        instance.author = request.user
+        instance.author = user
         instance.save()
         return redirect(constants.BLOG_PROFILE_NAME,
-                        username=request.user.username)
+                        username=user.username)
     return render(request, constants.BLOG_CREATE, context={'form': form})
 
 
